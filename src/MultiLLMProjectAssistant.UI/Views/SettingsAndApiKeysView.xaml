@@ -1,0 +1,516 @@
+<UserControl x:Class="MultiLLMProjectAssistant.UI.Views.SettingsAndApiKeysView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#2C2C2C">
+    <UserControl.Resources>
+        <!-- Shared surfaces (matches other screens) -->
+        <Style x:Key="PanelSurfaceStyle" TargetType="Border">
+            <Setter Property="Background" Value="#3E3E3E"/>
+            <Setter Property="CornerRadius" Value="18"/>
+            <Setter Property="Padding" Value="22"/>
+        </Style>
+
+        <Style x:Key="InputSurfaceStyle" TargetType="Border">
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="BorderBrush" Value="#444444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="14,10"/>
+        </Style>
+
+        <Style x:Key="SearchSurfaceStyle" TargetType="Border" BasedOn="{StaticResource InputSurfaceStyle}">
+            <Style.Triggers>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="#3A638C"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="InputBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#EAEAEA"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+
+        <Style x:Key="PrimaryActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2F3E50"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="18,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="MinWidth" Value="140"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="16">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#3A638C"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#24405A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SecondaryActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#3B4E64"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="16">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#333333"/>
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="#3A638C"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="#262626"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- STRICT BLUE COMBOBOX (same template as Request Builder) -->
+        <Style x:Key="StrictBlueCombo" TargetType="ComboBox">
+            <Setter Property="Background" Value="#2F3E50"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="18,10,18,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinHeight" Value="40"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                          Grid.Column="2"
+                                          Focusable="false"
+                                          IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="#2F3E50" CornerRadius="20" x:Name="border" Height="40">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="30"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Path x:Name="Arrow"
+                                                      Grid.Column="1"
+                                                      Fill="#A0A0A0"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      Data="M 0 0 L 4 4 L 8 0 Z"
+                                                      Margin="0,2,5,0"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="border" Property="Background" Value="#3B4E64"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <ContentPresenter x:Name="ContentSite"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="15,0,30,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left" />
+
+                            <Popup x:Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Fade">
+                                <Grid x:Name="DropDown"
+                                      SnapsToDevicePixels="True"
+                                      MinWidth="{TemplateBinding ActualWidth}"
+                                      MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder"
+                                            Background="#2F3E50"
+                                            CornerRadius="8"
+                                            Margin="0,5,0,0"
+                                            BorderBrush="#40546B"
+                                            BorderThickness="1"/>
+                                    <ScrollViewer Margin="0,5">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="Bd" Background="Transparent" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#3B4E64"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="LabelTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#A0A0A0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <!-- API Keys list item (fix weird default white selection) -->
+        <Style x:Key="KeysListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#EAEAEA"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                        <Border x:Name="ItemOuter"
+                                Background="Transparent"
+                                CornerRadius="14"
+                                Padding="2">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemOuter" Property="Background" Value="#1A3B4E64"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemOuter" Property="Background" Value="#263B4E64"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,15">
+            <StackPanel>
+                <TextBlock Text="Settings"
+                           FontFamily="Segoe UI"
+                           FontSize="30"
+                           FontWeight="SemiBold"
+                           Foreground="#FFFFFF"/>
+                <TextBlock Text="Configure keys, provider behavior, UI preferences, and storage."
+                           Foreground="#A0A0A0"
+                           FontSize="13"
+                           Margin="0,6,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Height="1" Background="#444444" Margin="0,0,0,18"/>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <!-- API Keys -->
+                <!-- Constrain height so the key list scrolls (page uses a ScrollViewer) -->
+                <Border Style="{StaticResource PanelSurfaceStyle}" Margin="0,0,0,18" MaxHeight="560">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <!-- Keep this card stable; inner lists scroll -->
+                            <RowDefinition Height="360"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="API Key Management" Style="{StaticResource SectionTitleStyle}"/>
+                                <TextBlock Text="Keys are encrypted at rest (DPAPI). Stored locally only."
+                                           Foreground="#A0A0A0"
+                                           FontSize="12"
+                                           Margin="0,6,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button x:Name="AddKeyButton" Content="+ Add Key" Style="{StaticResource PrimaryActionButtonStyle}" Click="AddKey_Click"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Grid.Row="1" Height="1" Background="#444444" Margin="0,16,0,16"/>
+
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="5"/>
+                                <ColumnDefinition Width="3*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left list -->
+                            <Border Grid.Column="0" Background="#2D2D2D" CornerRadius="14" Padding="12" Height="360" VerticalAlignment="Top">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Border Grid.Row="0" Style="{StaticResource SearchSurfaceStyle}" Margin="0,0,0,12">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="🔎" Foreground="#A0A0A0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                            <Grid Grid.Column="1">
+                                                <TextBox x:Name="KeySearchTextBox" Style="{StaticResource InputBoxStyle}" TextChanged="KeySearchTextBox_TextChanged"/>
+                                                <TextBlock Text="Search keys..."
+                                                           Foreground="#A0A0A0"
+                                                           FontSize="13"
+                                                           IsHitTestVisible="False"
+                                                           VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding ElementName=KeySearchTextBox, Path=IsKeyboardFocusWithin}" Value="False"/>
+                                                                        <Condition Binding="{Binding ElementName=KeySearchTextBox, Path=Text}" Value=""/>
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </MultiDataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+
+                                    <ListBox x:Name="KeysListBox"
+                                             Grid.Row="1"
+                                             Background="Transparent"
+                                             BorderThickness="0"
+                                             ItemContainerStyle="{StaticResource KeysListBoxItemStyle}"
+                                             FocusVisualStyle="{x:Null}"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                             ScrollViewer.CanContentScroll="False"
+                                             VirtualizingStackPanel.IsVirtualizing="True"
+                                             SelectionChanged="KeysListBox_SelectionChanged">
+                                    </ListBox>
+                                </Grid>
+                            </Border>
+
+                            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" Background="Transparent"/>
+
+                            <!-- Right editor -->
+                            <Border Grid.Column="2" Background="#2D2D2D" CornerRadius="14" Padding="16" Height="360" VerticalAlignment="Top">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="Key Details" Foreground="#FFFFFF" FontSize="15" FontWeight="SemiBold"/>
+
+                                    <Grid Grid.Row="1" Margin="0,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Provider:" Foreground="#A0A0A0" FontSize="12" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <ComboBox Grid.Column="1"
+                                                  x:Name="ProviderComboBox"
+                                                  Width="220"
+                                                  HorizontalAlignment="Left"
+                                                  Style="{StaticResource StrictBlueCombo}">
+                                            <ComboBoxItem Content="OpenAI-GPT4"/>
+                                            <ComboBoxItem Content="Gemini-Pro"/>
+                                            <ComboBoxItem Content="xAI-Grok"/>
+                                        </ComboBox>
+                                    </Grid>
+
+                                    <StackPanel Grid.Row="2" Margin="0,14,0,0">
+                                        <TextBlock Text="API Key (masked)" Style="{StaticResource LabelTextStyle}"/>
+                                        <Border Style="{StaticResource SearchSurfaceStyle}">
+                                            <TextBox x:Name="ApiKeyTextBox" Style="{StaticResource InputBoxStyle}"/>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="3" Margin="0,14,0,0">
+                                        <TextBlock Text="Encryption" Style="{StaticResource LabelTextStyle}"/>
+                                        <TextBlock x:Name="EncryptionStatusText"
+                                                   Text="Encrypted at rest (DPAPI)"
+                                                   Foreground="#A0A0A0"
+                                                   FontSize="12"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+                                        <Button x:Name="DeleteKeyButton" Content="Delete" Style="{StaticResource SecondaryActionButtonStyle}" Click="DeleteKey_Click" Margin="0,0,10,0"/>
+                                        <Button x:Name="SaveKeyButton" Content="Save Key" Style="{StaticResource PrimaryActionButtonStyle}" Click="SaveKey_Click"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Provider behavior -->
+                <Border Style="{StaticResource PanelSurfaceStyle}" Margin="0,0,0,18">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="LLM Provider Config" Style="{StaticResource SectionTitleStyle}"/>
+                            <TextBlock Text="Timeouts, retries, and default memory injection behavior."
+                                       Foreground="#A0A0A0"
+                                       FontSize="12"
+                                       Margin="0,6,0,0"/>
+                        </StackPanel>
+                        <Grid Grid.Row="1" Margin="0,18,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                <TextBlock Text="Request timeout (seconds)" Style="{StaticResource LabelTextStyle}"/>
+                                <Border Style="{StaticResource SearchSurfaceStyle}">
+                                    <TextBox x:Name="TimeoutSecondsTextBox" Style="{StaticResource InputBoxStyle}"/>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                <TextBlock Text="Retry count" Style="{StaticResource LabelTextStyle}"/>
+                                <Border Style="{StaticResource SearchSurfaceStyle}">
+                                    <TextBox x:Name="RetryCountTextBox" Style="{StaticResource InputBoxStyle}"/>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Default memory Top-K" Style="{StaticResource LabelTextStyle}"/>
+                                <Border Style="{StaticResource SearchSurfaceStyle}">
+                                    <TextBox x:Name="DefaultTopKTextBox" Style="{StaticResource InputBoxStyle}"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Storage -->
+                <Border Style="{StaticResource PanelSurfaceStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Local Storage Options" Style="{StaticResource SectionTitleStyle}"/>
+                        <TextBlock Grid.Row="1" Text="Configure where project data is stored on this device."
+                                   Foreground="#A0A0A0"
+                                   FontSize="12"
+                                   Margin="0,6,0,0"/>
+
+                        <Grid Grid.Row="2" Margin="0,18,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Local storage folder" Style="{StaticResource LabelTextStyle}"/>
+                                <Border Style="{StaticResource SearchSurfaceStyle}">
+                                    <TextBox x:Name="StorageFolderTextBox" Style="{StaticResource InputBoxStyle}"/>
+                                </Border>
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    x:Name="BrowseStorageButton"
+                                    Content="Browse"
+                                    Style="{StaticResource SecondaryActionButtonStyle}"
+                                    Margin="12,20,0,0"
+                                    Click="BrowseStorage_Click"/>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+                            <Button x:Name="ResetSettingsButton" Content="Reset" Style="{StaticResource SecondaryActionButtonStyle}" Click="ResetSettings_Click" Margin="0,0,10,0"/>
+                            <Button x:Name="SaveAllSettingsButton" Content="Save Settings" Style="{StaticResource PrimaryActionButtonStyle}" Click="SaveAllSettings_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/MultiLLMProjectAssistant.UI/MultiLLMProjectAssistant.UI.csproj" />
+  <Project Path="src/MultiLLMProjectAssistant.Core/MultiLLMProjectAssistant.Core.csproj" />
+  <Project Path="tests/MultiLLMProjectAssistant.Tests/MultiLLMProjectAssistant.Tests.csproj" />
+</Solution>
