@@ -1,0 +1,101 @@
+<UserControl x:Class="MultiLLMProjectAssistant.UI.Views.MemoryItemEditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+    <UserControl.Resources>
+        <Style x:Key="inputstyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="actionbtnstyle" TargetType="Button">
+            <Setter Property="Background" Value="#273B4E"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="18">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#354A5E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="labeltextstyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#A0A0A0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <Button Grid.Column="0" Content="← Back" Style="{StaticResource actionbtnstyle}" Margin="0,0,20,0" x:Name="backbtn" Background="Transparent" Foreground="#A0A0A0"/>
+            <TextBlock Grid.Column="1" Text="Add / Edit Memory Item" FontFamily="Segoe UI" FontSize="28" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+        </Grid>
+
+        <Border Grid.Row="0" Margin="0,50,0,0" BorderBrush="#3E3E3E" BorderThickness="0,0,0,1" VerticalAlignment="Bottom"/>
+
+        <Border Grid.Row="2" Background="#3E3E3E" CornerRadius="10" Padding="30" Margin="0,20,0,0" VerticalAlignment="Top">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Title" Style="{StaticResource labeltextstyle}"/>
+                <TextBox Grid.Row="1" Style="{StaticResource inputstyle}" Margin="0,0,0,20" x:Name="titleinput" Text="Project Architecture Overiew"/>
+
+                <TextBlock Grid.Row="2" Text="Content / Context" Style="{StaticResource labeltextstyle}"/>
+                <TextBox Grid.Row="3" Style="{StaticResource inputstyle}" Margin="0,0,0,20" MinHeight="150" TextWrapping="Wrap" AcceptsReturn="True" 
+                         x:Name="contentinput" Text="Multi-tier system architecture with microservices pattern. Focus on scalability and maintainability."/>
+
+                <TextBlock Grid.Row="4" Text="Tags (comma separated)" Style="{StaticResource labeltextstyle}"/>
+                <TextBox Grid.Row="5" Style="{StaticResource inputstyle}" Margin="0,0,0,30" x:Name="tagsinput" Text="architecture, documentation"/>
+
+                <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Cancel" Style="{StaticResource actionbtnstyle}" Background="Transparent" Foreground="#A0A0A0" Margin="0,0,10,0" x:Name="cancelbtn"/>
+                    <Button Content="Save Memory" Style="{StaticResource actionbtnstyle}" x:Name="savebtn"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
