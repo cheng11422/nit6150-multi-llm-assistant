@@ -416,3 +416,9 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# === Security & Storage (Pong) ===
+*.enc
+ProjectData/
+logs/
+.DS_Store
