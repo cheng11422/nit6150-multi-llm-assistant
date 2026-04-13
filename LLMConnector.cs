@@ -51,6 +51,7 @@ namespace MultiLLMProjectAssistant.UI
         {
             public string Provider { get; set; } = "";
             public string EncryptedValue { get; set; } = "";
+            public string SharedValue { get; set; } = "";
         }
 
         private static readonly JsonSerializerOptions PrettyJson = new JsonSerializerOptions
@@ -63,10 +64,7 @@ namespace MultiLLMProjectAssistant.UI
 
         public LLMConnector()
             : this(
-                Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "MultiLLMProjectAssistant",
-                    "settings.json"),
+                AppDataPaths.GetDataFile("settings.json"),
                 new HttpClient())
         {
         }
@@ -164,16 +162,27 @@ namespace MultiLLMProjectAssistant.UI
 
         private static string ResolveApiKey(SettingsModel settings, string provider)
         {
-            var encrypted = settings.ApiKeys?
-                .FirstOrDefault(k => string.Equals(k.Provider, provider, StringComparison.OrdinalIgnoreCase))
-                ?.EncryptedValue;
+            var keyItem = settings.ApiKeys?
+                .FirstOrDefault(k => string.Equals(k.Provider, provider, StringComparison.OrdinalIgnoreCase));
 
-            if (string.IsNullOrWhiteSpace(encrypted))
+            if (keyItem == null)
                 return "";
 
-            var protectedBytes = Convert.FromBase64String(encrypted);
-            var data = ProtectedData.Unprotect(protectedBytes, null, DataProtectionScope.CurrentUser);
-            return Encoding.UTF8.GetString(data);
+            if (!string.IsNullOrWhiteSpace(keyItem.EncryptedValue))
+            {
+                try
+                {
+                    var protectedBytes = Convert.FromBase64String(keyItem.EncryptedValue);
+                    var data = ProtectedData.Unprotect(protectedBytes, null, DataProtectionScope.CurrentUser);
+                    return Encoding.UTF8.GetString(data);
+                }
+                catch when (!string.IsNullOrWhiteSpace(keyItem.SharedValue))
+                {
+                    return keyItem.SharedValue;
+                }
+            }
+
+            return keyItem.SharedValue ?? "";
         }
 
         private async Task<LlmResponse> SendOpenAiAsync(LlmRequest request, string apiKey, CancellationToken cancellationToken)

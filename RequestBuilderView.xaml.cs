@@ -118,18 +118,13 @@ namespace MultiLLMProjectAssistant.UI.Views
         public RequestBuilderView()
         {
             InitializeComponent();
-
-            var dataFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "MultiLLMProjectAssistant");
-
-            _contextFilePath = Path.Combine(dataFolder, "request_context.json");
-            _logFilePath = Path.Combine(dataFolder, "requests_log.json");
-            _currentProjectPath = Path.Combine(dataFolder, "current_project.json");
-            _projectsPath = Path.Combine(dataFolder, "projects.json");
-            _filesPath = Path.Combine(dataFolder, "files.json");
-            _templatesPath = Path.Combine(dataFolder, "templates.json");
-            _memoryPath = Path.Combine(dataFolder, "project_memory.json");
+            _contextFilePath = AppDataPaths.GetDataFile("request_context.json");
+            _logFilePath = AppDataPaths.GetDataFile("requests_log.json");
+            _currentProjectPath = AppDataPaths.GetDataFile("current_project.json");
+            _projectsPath = AppDataPaths.GetDataFile("projects.json");
+            _filesPath = AppDataPaths.GetDataFile("files.json");
+            _templatesPath = AppDataPaths.GetDataFile("templates.json");
+            _memoryPath = AppDataPaths.GetDataFile("project_memory.json");
             _draftSaveTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(400)

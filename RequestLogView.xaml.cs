@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using MultiLLMProjectAssistant.UI;
 
 namespace MultiLLMProjectAssistant.UI.Views
 {
@@ -100,13 +101,10 @@ namespace MultiLLMProjectAssistant.UI.Views
         {
             InitializeComponent();
             _requestedProjectId = projectId;
-            var dataFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "MultiLLMProjectAssistant");
-            _logPath = Path.Combine(dataFolder, "requests_log.json");
-            _projectsPath = Path.Combine(dataFolder, "projects.json");
-            _currentProjectPath = Path.Combine(dataFolder, "current_project.json");
-            _contextPath = Path.Combine(dataFolder, "request_context.json");
+            _logPath = AppDataPaths.GetDataFile("requests_log.json");
+            _projectsPath = AppDataPaths.GetDataFile("projects.json");
+            _currentProjectPath = AppDataPaths.GetDataFile("current_project.json");
+            _contextPath = AppDataPaths.GetDataFile("request_context.json");
 
             LoadLog();
             BuildProjectFilters();

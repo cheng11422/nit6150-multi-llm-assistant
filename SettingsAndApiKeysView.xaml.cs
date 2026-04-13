@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using Microsoft.Win32;
+using MultiLLMProjectAssistant.UI;
 
 namespace MultiLLMProjectAssistant.UI.Views
 {
@@ -18,34 +19,68 @@ namespace MultiLLMProjectAssistant.UI.Views
     {
         private sealed class ApiKeyItem : INotifyPropertyChanged
         {
+            private const string MaskValue = "****************";
+
             private string _provider = "";
-            private string _encrypted = ""; // base64
+            private string _encrypted = "";
+            private string _sharedValue = "";
             private DateTimeOffset _updatedAt = DateTimeOffset.UtcNow;
 
             public Guid Id { get; set; } = Guid.NewGuid();
+
             public string Provider
             {
                 get => _provider;
-                set { _provider = value; OnPropertyChanged(nameof(Provider)); OnPropertyChanged(nameof(Title)); }
+                set
+                {
+                    _provider = value;
+                    OnPropertyChanged(nameof(Provider));
+                    OnPropertyChanged(nameof(Title));
+                }
             }
 
             public string EncryptedValue
             {
                 get => _encrypted;
-                set { _encrypted = value; OnPropertyChanged(nameof(EncryptedValue)); OnPropertyChanged(nameof(Masked)); }
+                set
+                {
+                    _encrypted = value;
+                    OnPropertyChanged(nameof(EncryptedValue));
+                }
+            }
+
+            public string SharedValue
+            {
+                get => _sharedValue;
+                set
+                {
+                    _sharedValue = value;
+                    OnPropertyChanged(nameof(SharedValue));
+                    OnPropertyChanged(nameof(IsShared));
+                    OnPropertyChanged(nameof(Subtitle));
+                }
             }
 
             public DateTimeOffset UpdatedAt
             {
                 get => _updatedAt;
-                set { _updatedAt = value; OnPropertyChanged(nameof(UpdatedAt)); OnPropertyChanged(nameof(Subtitle)); }
+                set
+                {
+                    _updatedAt = value;
+                    OnPropertyChanged(nameof(UpdatedAt));
+                    OnPropertyChanged(nameof(Subtitle));
+                }
             }
 
             public string Title => string.IsNullOrWhiteSpace(Provider) ? "(Provider)" : Provider;
-            public string Subtitle => $"Updated {UpdatedAt:yyyy-MM-dd HH:mm}";
-            public string Masked => "••••••••••••••••";
+            public bool IsShared => !string.IsNullOrWhiteSpace(SharedValue);
+            public string Subtitle => IsShared
+                ? $"Updated {UpdatedAt:yyyy-MM-dd HH:mm} - Shared"
+                : $"Updated {UpdatedAt:yyyy-MM-dd HH:mm} - Local";
+            public string Masked => MaskValue;
 
             public event PropertyChangedEventHandler? PropertyChanged;
+
             private void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
@@ -68,10 +103,7 @@ namespace MultiLLMProjectAssistant.UI.Views
         public SettingsAndApiKeysView()
         {
             InitializeComponent();
-            _settingsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "MultiLLMProjectAssistant",
-                "settings.json");
+            _settingsPath = AppDataPaths.GetDataFile("settings.json");
 
             BuildKeysTemplate();
             _keysView = CollectionViewSource.GetDefaultView(_keys);
@@ -86,7 +118,6 @@ namespace MultiLLMProjectAssistant.UI.Views
 
         private void BuildKeysTemplate()
         {
-            // Card row like other lists; keeps vertical-only scrolling.
             var root = new FrameworkElementFactory(typeof(Border));
             root.SetValue(Border.BackgroundProperty, (Brush)new BrushConverter().ConvertFromString("#2D2D2D")!);
             root.SetValue(Border.BorderBrushProperty, (Brush)new BrushConverter().ConvertFromString("#444444")!);
@@ -118,10 +149,10 @@ namespace MultiLLMProjectAssistant.UI.Views
 
         private bool FilterKey(object obj)
         {
-            if (obj is not ApiKeyItem k) return false;
-            var q = (KeySearchTextBox.Text ?? "").Trim();
-            if (string.IsNullOrWhiteSpace(q)) return true;
-            return k.Provider.Contains(q, StringComparison.OrdinalIgnoreCase);
+            if (obj is not ApiKeyItem key) return false;
+            var query = (KeySearchTextBox.Text ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(query)) return true;
+            return key.Provider.Contains(query, StringComparison.OrdinalIgnoreCase);
         }
 
         private void RefreshKeys()
@@ -151,13 +182,15 @@ namespace MultiLLMProjectAssistant.UI.Views
             }
 
             _keys.Clear();
-            foreach (var k in model.ApiKeys ?? Array.Empty<ApiKeyItem>())
-                _keys.Add(k);
+            foreach (var key in model.ApiKeys ?? Array.Empty<ApiKeyItem>())
+                _keys.Add(key);
 
             TimeoutSecondsTextBox.Text = model.TimeoutSeconds.ToString();
             RetryCountTextBox.Text = model.RetryCount.ToString();
             DefaultTopKTextBox.Text = model.DefaultTopK.ToString();
-            StorageFolderTextBox.Text = model.StorageFolder ?? "";
+            StorageFolderTextBox.Text = string.IsNullOrWhiteSpace(model.StorageFolder)
+                ? AppDataPaths.DataFolder
+                : model.StorageFolder;
 
             _selected = null;
             KeysListBox.SelectedItem = null;
@@ -184,13 +217,13 @@ namespace MultiLLMProjectAssistant.UI.Views
             }
             catch
             {
-                // ignore MVP
+                // Keep the settings screen usable even if the save fails.
             }
         }
 
         private static int ParseInt(string? value, int fallback)
         {
-            if (int.TryParse(value, out var v)) return v;
+            if (int.TryParse(value, out var parsed)) return parsed;
             return fallback;
         }
 
@@ -198,14 +231,16 @@ namespace MultiLLMProjectAssistant.UI.Views
         {
             foreach (var item in combo.Items)
             {
-                if (item is ComboBoxItem cbi &&
-                    string.Equals(cbi.Content?.ToString(), value, StringComparison.OrdinalIgnoreCase))
+                if (item is ComboBoxItem comboItem &&
+                    string.Equals(comboItem.Content?.ToString(), value, StringComparison.OrdinalIgnoreCase))
                 {
-                    combo.SelectedItem = cbi;
+                    combo.SelectedItem = comboItem;
                     return;
                 }
             }
-            if (combo.Items.Count > 0) combo.SelectedIndex = 0;
+
+            if (combo.Items.Count > 0)
+                combo.SelectedIndex = 0;
         }
 
         private static string EncryptDpapiToBase64(string plaintext)
@@ -222,10 +257,27 @@ namespace MultiLLMProjectAssistant.UI.Views
             return Encoding.UTF8.GetString(data);
         }
 
+        private static string? TryGetStoredPlaintext(ApiKeyItem item)
+        {
+            if (item.IsShared)
+                return item.SharedValue;
+
+            if (string.IsNullOrWhiteSpace(item.EncryptedValue))
+                return null;
+
+            try
+            {
+                return DecryptDpapiFromBase64(item.EncryptedValue);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private void UpdateKeyActions()
         {
-            var hasSelection = _selected != null;
-            DeleteKeyButton.IsEnabled = hasSelection;
+            DeleteKeyButton.IsEnabled = _selected != null;
             SaveKeyButton.IsEnabled = true;
         }
 
@@ -233,13 +285,24 @@ namespace MultiLLMProjectAssistant.UI.Views
         {
             ProviderComboBox.SelectedIndex = 0;
             ApiKeyTextBox.Text = "";
-            EncryptionStatusText.Text = "Encrypted at rest (DPAPI)";
+            ShareKeyCheckBox.IsChecked = false;
+            UpdateEncryptionStatusText();
         }
 
         private void LoadKeyToEditor(ApiKeyItem key)
         {
             SetComboSelection(ProviderComboBox, key.Provider);
-            ApiKeyTextBox.Text = key.Masked; // keep masked in UI; edit means replace
+            ApiKeyTextBox.Text = key.Masked;
+            ShareKeyCheckBox.IsChecked = key.IsShared;
+            UpdateEncryptionStatusText();
+        }
+
+        private void UpdateEncryptionStatusText()
+        {
+            var shared = ShareKeyCheckBox.IsChecked == true;
+            EncryptionStatusText.Text = shared
+                ? "Shared in settings.json as plain text for team access"
+                : "Encrypted at rest (DPAPI, current Windows user only)";
         }
 
         private void KeySearchTextBox_TextChanged(object sender, TextChangedEventArgs e) => RefreshKeys();
@@ -270,28 +333,50 @@ namespace MultiLLMProjectAssistant.UI.Views
         private void SaveKey_Click(object sender, RoutedEventArgs e)
         {
             var provider = (ProviderComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "";
-            if (string.IsNullOrWhiteSpace(provider)) return;
+            if (string.IsNullOrWhiteSpace(provider))
+                return;
 
-            // If user didn't change the masked text, keep existing encrypted value.
+            var storeAsShared = ShareKeyCheckBox.IsChecked == true;
             var rawInput = (ApiKeyTextBox.Text ?? "").Trim();
-            var keepExisting = rawInput.StartsWith("•") && _selected != null;
+            var isMaskedEditorValue = rawInput == "****************" && _selected != null;
+            string? plaintext = rawInput;
+
+            if (isMaskedEditorValue && _selected != null)
+            {
+                if (storeAsShared == _selected.IsShared)
+                {
+                    plaintext = null;
+                }
+                else
+                {
+                    plaintext = TryGetStoredPlaintext(_selected);
+                    if (string.IsNullOrWhiteSpace(plaintext))
+                    {
+                        MessageBox.Show(
+                            "Paste the API key again before switching it between local encrypted mode and shared mode.",
+                            "API Key Required",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+                        return;
+                    }
+                }
+            }
 
             if (_selected == null)
             {
                 var newItem = new ApiKeyItem
                 {
                     Provider = provider,
-                    EncryptedValue = keepExisting ? "" : EncryptDpapiToBase64(rawInput),
                     UpdatedAt = DateTimeOffset.Now
                 };
+                ApplyKeyStorageMode(newItem, plaintext, storeAsShared);
                 _keys.Insert(0, newItem);
                 KeysListBox.SelectedItem = newItem;
             }
             else
             {
                 _selected.Provider = provider;
-                if (!keepExisting)
-                    _selected.EncryptedValue = EncryptDpapiToBase64(rawInput);
+                ApplyKeyStorageMode(_selected, plaintext, storeAsShared);
                 _selected.UpdatedAt = DateTimeOffset.Now;
             }
 
@@ -300,9 +385,27 @@ namespace MultiLLMProjectAssistant.UI.Views
             UpdateKeyActions();
         }
 
+        private static void ApplyKeyStorageMode(ApiKeyItem item, string? plaintext, bool storeAsShared)
+        {
+            if (plaintext == null)
+                return;
+
+            if (storeAsShared)
+            {
+                item.SharedValue = plaintext;
+                item.EncryptedValue = "";
+            }
+            else
+            {
+                item.EncryptedValue = string.IsNullOrWhiteSpace(plaintext) ? "" : EncryptDpapiToBase64(plaintext);
+                item.SharedValue = "";
+            }
+        }
+
         private void DeleteKey_Click(object sender, RoutedEventArgs e)
         {
             if (_selected == null) return;
+
             _keys.Remove(_selected);
             _selected = null;
             KeysListBox.SelectedItem = null;
@@ -314,12 +417,12 @@ namespace MultiLLMProjectAssistant.UI.Views
 
         private void BrowseStorage_Click(object sender, RoutedEventArgs e)
         {
-            // Lightweight fallback: select a folder by picking any file in it.
             var dlg = new OpenFileDialog
             {
                 Title = "Select a folder (pick any file inside)",
                 CheckFileExists = true
             };
+
             if (dlg.ShowDialog() == true)
                 StorageFolderTextBox.Text = Path.GetDirectoryName(dlg.FileName) ?? "";
         }
@@ -335,6 +438,7 @@ namespace MultiLLMProjectAssistant.UI.Views
             {
                 // ignore
             }
+
             LoadSettings();
             RefreshKeys();
             UpdateKeyActions();
@@ -343,6 +447,11 @@ namespace MultiLLMProjectAssistant.UI.Views
         private void SaveAllSettings_Click(object sender, RoutedEventArgs e)
         {
             SaveSettings();
+        }
+
+        private void ShareKeyCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateEncryptionStatusText();
         }
     }
 }

@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using MultiLLMProjectAssistant.UI;
 
 namespace MultiLLMProjectAssistant.UI.Views
 {
@@ -185,17 +186,12 @@ namespace MultiLLMProjectAssistant.UI.Views
         public ProjectSelectionView()
         {
             InitializeComponent();
-
-            var dataFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "MultiLLMProjectAssistant");
-
-            _projectsPath = Path.Combine(dataFolder, "projects.json");
-            _currentPath = Path.Combine(dataFolder, "current_project.json");
-            _logPath = Path.Combine(dataFolder, "requests_log.json");
-            _settingsPath = Path.Combine(dataFolder, "settings.json");
-            _filesPath = Path.Combine(dataFolder, "files.json");
-            _memoryPath = Path.Combine(dataFolder, "project_memory.json");
+            _projectsPath = AppDataPaths.GetDataFile("projects.json");
+            _currentPath = AppDataPaths.GetDataFile("current_project.json");
+            _logPath = AppDataPaths.GetDataFile("requests_log.json");
+            _settingsPath = AppDataPaths.GetDataFile("settings.json");
+            _filesPath = AppDataPaths.GetDataFile("files.json");
+            _memoryPath = AppDataPaths.GetDataFile("project_memory.json");
 
             _projectsView = CollectionViewSource.GetDefaultView(_projects);
             _projectsView.Filter = FilterProject;
