@@ -1,0 +1,42 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+Any CPU/
+
+# .NET / NuGet
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local app/runtime data
+settings.json
+projects.json
+current_project.json
+request_context.json
+requests_log.json
+project_memory.json
+files.json
+
+# Local imported/generated content
+ImportedFiles/
+
