@@ -51,7 +51,6 @@ namespace MultiLLMProjectAssistant.UI
         {
             public string Provider { get; set; } = "";
             public string EncryptedValue { get; set; } = "";
-            public string SharedValue { get; set; } = "";
         }
 
         private static readonly JsonSerializerOptions PrettyJson = new JsonSerializerOptions
@@ -64,7 +63,10 @@ namespace MultiLLMProjectAssistant.UI
 
         public LLMConnector()
             : this(
-                AppDataPaths.GetDataFile("settings.json"),
+                Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "MultiLLMProjectAssistant",
+                    "settings.json"),
                 new HttpClient())
         {
         }
@@ -162,27 +164,16 @@ namespace MultiLLMProjectAssistant.UI
 
         private static string ResolveApiKey(SettingsModel settings, string provider)
         {
-            var keyItem = settings.ApiKeys?
-                .FirstOrDefault(k => string.Equals(k.Provider, provider, StringComparison.OrdinalIgnoreCase));
+            var encrypted = settings.ApiKeys?
+                .FirstOrDefault(k => string.Equals(k.Provider, provider, StringComparison.OrdinalIgnoreCase))
+                ?.EncryptedValue;
 
-            if (keyItem == null)
+            if (string.IsNullOrWhiteSpace(encrypted))
                 return "";
 
-            if (!string.IsNullOrWhiteSpace(keyItem.EncryptedValue))
-            {
-                try
-                {
-                    var protectedBytes = Convert.FromBase64String(keyItem.EncryptedValue);
-                    var data = ProtectedData.Unprotect(protectedBytes, null, DataProtectionScope.CurrentUser);
-                    return Encoding.UTF8.GetString(data);
-                }
-                catch when (!string.IsNullOrWhiteSpace(keyItem.SharedValue))
-                {
-                    return keyItem.SharedValue;
-                }
-            }
-
-            return keyItem.SharedValue ?? "";
+            var protectedBytes = Convert.FromBase64String(encrypted);
+            var data = ProtectedData.Unprotect(protectedBytes, null, DataProtectionScope.CurrentUser);
+            return Encoding.UTF8.GetString(data);
         }
 
         private async Task<LlmResponse> SendOpenAiAsync(LlmRequest request, string apiKey, CancellationToken cancellationToken)
